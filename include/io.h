@@ -46,5 +46,5 @@ class IO {
   std::shared_ptr<spdlog::logger> console_;
 };
 
-}  // namespace mpm
+}  // namespace mpmviz
 #endif  // MPM_VIZ_IO_H_
