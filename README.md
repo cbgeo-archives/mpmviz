@@ -35,7 +35,7 @@
 
 ### Compile mpmviz or mpmviztest
 
-* To compile either `mpmviz` or `mpmviztest` alone, run `make mpmviz -jN` or `make mpmviztest -jN` (where N is the number of cores).
+* To compile either `mpmviz` or `mpmviztest` alone, run `make mpmviz -jN` or `make mpmviz-test -jN` (where N is the number of cores).
 
 ### Compile without tests [Editing CMake options]
 
@@ -43,4 +43,4 @@ To compile without tests run: `mkdir build && cd build && cmake -DCMAKE_BUILD_TY
 
 ### Run tests
 
-0. Run `./mpmviztest -s` (for a verbose output) or `ctest -VV`.
+0. Run `./mpmviz-test -s` (for a verbose output) or `ctest -VV`.
