@@ -98,6 +98,7 @@ if(MPMVIZ_BUILD_TESTING)
   SET(test_src
     ${mpmviz_SOURCE_DIR}/tests/test_main.cc
     ${mpmviz_SOURCE_DIR}/tests/io_test.cc
+    ${mpmviz_SOURCE_DIR}/tests/particles_test.cc
   )
   add_executable(mpmviz-test ${test_src})
   target_link_libraries(mpmviz-test lmpmviz)
