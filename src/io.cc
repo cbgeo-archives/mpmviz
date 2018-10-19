@@ -46,21 +46,10 @@ bool mpmviz::IO::check_file(const std::string& filename) {
 boost::filesystem::path mpmviz::IO::output_file(
     const std::string& attribute, const std::string& file_extension,
     unsigned step, unsigned max_steps) {
-  // file_name
   std::stringstream file_name;
+  std::string path = this->working_dir() + "viz/";
+
   std::string attribute_name = attribute;
-
-#ifdef USE_MPI
-  int mpi_rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-  // Get number of MPI ranks
-  int mpi_size;
-  MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-
-  if (mpi_size > 1)
-    attribute_name +=
-        "-" + std::to_string(mpi_rank) + "_" + std::to_string(mpi_size) + "-";
-#endif
 
   file_name.str(std::string());
   file_name << attribute_name;
@@ -70,6 +59,10 @@ boost::filesystem::path mpmviz::IO::output_file(
   file_name << step;
   file_name << file_extension;
 
-  boost::filesystem::path file_path(working_dir_ + file_name.str().c_str());
+  // Create results folder if not present
+  boost::filesystem::path dir(path);
+  if (!boost::filesystem::exists(dir)) boost::filesystem::create_directory(dir);
+
+  boost::filesystem::path file_path(path + file_name.str().c_str());
   return file_path;
 }
