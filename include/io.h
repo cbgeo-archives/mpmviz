@@ -24,8 +24,8 @@ class IO {
   //! \param[in] file_name Name of the file to check if it is present
   bool check_file(const std::string& file_name);
 
-  //! Return the output folder for the analysis
-  std::string output_folder() const;
+  //! Return the workign directory
+  std::string working_dir() const { return working_dir_; }
 
   //! Create output file names (eg. velocity0000*.vtk)
   //! Generates a file based on attribute, current step and maxsteps
@@ -36,12 +36,11 @@ class IO {
   //! \return file_name File name with the correct attribute and a VTK extension
   boost::filesystem::path output_file(const std::string& attribute,
                                       const std::string& file_extension,
-                                      const std::string& analysis_id,
                                       unsigned step, unsigned max_steps);
 
  private:
   //! Working directory
-  std::string working_dir_;
+  std::string working_dir_{"./"};
   //! Logger
   std::shared_ptr<spdlog::logger> console_;
 };

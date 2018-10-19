@@ -86,6 +86,7 @@ include_directories(BEFORE
 SET(mpmviz_src
   ${mpmviz_SOURCE_DIR}/src/io.cc
   ${mpmviz_SOURCE_DIR}/src/logger.cc
+  ${mpmviz_SOURCE_DIR}/src/particles.cc
 )
 
 add_library(lmpmviz SHARED ${mpmviz_src} ${mpmviz_vtk})

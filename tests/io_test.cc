@@ -9,11 +9,14 @@ TEST_CASE("IO is checked for input parsing", "[IO]") {
   int argc = 3;
   // clang-format off
     char* argv[] = {(char*)"./mpmviz",
-                    (char*)"-f",  (char*)"./"};
+                    (char*)"-f",  (char*)"../hdf5-samples"};
   // clang-format on
 
   // Create an IO object
   auto io = std::make_unique<mpmviz::IO>(argc, argv);
+
+  // Check working dir
+  REQUIRE(io->working_dir() == "../hdf5-samples");
 
   // Check if mpm.json exists
   REQUIRE(io->check_file("../README.md") == true);
@@ -21,12 +24,12 @@ TEST_CASE("IO is checked for input parsing", "[IO]") {
   // Check if a non-existant file is present
   REQUIRE(io->check_file("fail.txt") == false);
   // Check input file name
-  const std::string attribute = "geometry";
-  const std::string extension = ".vtp";
-  const std::string uuid_ = "MPM";
-  unsigned step = 57;
-  unsigned max_steps = 100;
+  const std::string attribute = "particles";
+  const std::string extension = ".h5";
+  unsigned step = 9;
+  unsigned max_steps = 10;
   auto meshfile =
-      io->output_file(attribute, extension, uuid_, step, max_steps).string();
-  REQUIRE(meshfile == "./results/MPM/geometry057.vtp");
+      io->output_file(attribute, extension, step, max_steps).string();
+  const auto output_file = io->working_dir() + "particles09.h5";
+  REQUIRE(meshfile == output_file);
 }

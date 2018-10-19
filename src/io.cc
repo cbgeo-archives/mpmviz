@@ -45,10 +45,9 @@ bool mpmviz::IO::check_file(const std::string& filename) {
 //! Create output VTK file names (eg. Velocity0000*.vtk)
 boost::filesystem::path mpmviz::IO::output_file(
     const std::string& attribute, const std::string& file_extension,
-    const std::string& analysis_id, unsigned step, unsigned max_steps) {
+    unsigned step, unsigned max_steps) {
+  // file_name
   std::stringstream file_name;
-  std::string path = "results/";
-
   std::string attribute_name = attribute;
 
 #ifdef USE_MPI
@@ -71,18 +70,6 @@ boost::filesystem::path mpmviz::IO::output_file(
   file_name << step;
   file_name << file_extension;
 
-  // Include path
-  if (!path.empty()) path = working_dir_ + path;
-
-  // Create results folder if not present
-  boost::filesystem::path dir(path);
-  if (!boost::filesystem::exists(dir)) boost::filesystem::create_directory(dir);
-
-  // Create analysis folder
-  path += analysis_id + "/";
-  dir = path;
-  if (!boost::filesystem::exists(dir)) boost::filesystem::create_directory(dir);
-
-  boost::filesystem::path file_path(path + file_name.str().c_str());
+  boost::filesystem::path file_path(working_dir_ + file_name.str().c_str());
   return file_path;
 }
