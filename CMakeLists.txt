@@ -92,11 +92,8 @@ SET(mpmviz_src
   ${mpmviz_SOURCE_DIR}/src/particles.cc
 )
 
-add_library(lmpmviz SHARED ${mpmviz_src} ${mpmviz_vtk})
-
-add_executable(mpmviz ${mpmviz_SOURCE_DIR}/src/main.cc)
-target_link_libraries(mpmviz lmpmviz)
-target_link_libraries(mpmviz ${mpmviz_SOURCE_DIR}/external/partio/lib/libpartio.a)
+add_executable(mpmviz ${mpmviz_SOURCE_DIR}/src/main.cc ${mpmviz_src} ${mpmviz_vtk})
+target_link_libraries(mpmviz  ${mpmviz_SOURCE_DIR}/external/partio/lib/libpartio.a)
 
 # Unit test
 if(MPMVIZ_BUILD_TESTING)
@@ -105,8 +102,8 @@ if(MPMVIZ_BUILD_TESTING)
     ${mpmviz_SOURCE_DIR}/tests/io_test.cc
     ${mpmviz_SOURCE_DIR}/tests/particles_test.cc
   )
-  add_executable(mpmviz-test ${test_src})
-  target_link_libraries(mpmviz-test lmpmviz)
+  add_executable(mpmviz-test ${test_src} ${mpmviz_src} ${mpmviz_vtk})
+  target_link_libraries(mpmviz-test ${mpmviz_SOURCE_DIR}/external/partio/lib/libpartio.a)
   add_test(NAME mpmviz-test COMMAND $<TARGET_FILE:mpmviz-test>)
   enable_testing()
 endif()

@@ -4,6 +4,8 @@
 #include <memory>
 #include <vector>
 
+#include <Partio.h>
+
 #include "hdf5_particle.h"
 #include "logger.h"
 
@@ -25,10 +27,15 @@ class Particles {
   Index id() const { return id_; }
 
   //! Read HDF5 particles file
+  //! \param[in] filename Input HDF5 particle file
   bool read_particles_hdf5(const std::string& filename);
 
   //! Return number of particles
   size_t nparticles() const { return particles_.size(); }
+
+  //! Write particles
+  //! \param[in] filename Output particles filename
+  bool write_particles(const std::string& filename);
 
  private:
   // ID of particles
