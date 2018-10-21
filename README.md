@@ -22,8 +22,6 @@
 * [Boost](http://www.boost.org/)
 * [Eigen](http://eigen.tuxfamily.org/)
 * [HDF5](https://support.hdfgroup.org/HDF5/)
-
-#### Optional
 * [VTK](https://www.vtk.org/)
 
 ## Compile

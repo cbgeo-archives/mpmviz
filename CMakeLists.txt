@@ -82,6 +82,9 @@ include_directories(BEFORE
   ${mpmviz_SOURCE_DIR}/external/
 )
 
+# Partio
+include_directories(external/partio/include)
+
 # mpmviz executable
 SET(mpmviz_src
   ${mpmviz_SOURCE_DIR}/src/io.cc
@@ -93,6 +96,7 @@ add_library(lmpmviz SHARED ${mpmviz_src} ${mpmviz_vtk})
 
 add_executable(mpmviz ${mpmviz_SOURCE_DIR}/src/main.cc)
 target_link_libraries(mpmviz lmpmviz)
+target_link_libraries(mpmviz ${mpmviz_SOURCE_DIR}/external/partio/lib/libpartio.a)
 
 # Unit test
 if(MPMVIZ_BUILD_TESTING)
