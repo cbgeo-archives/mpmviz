@@ -31,10 +31,14 @@ TEST_CASE("Particles are checked for input parsing", "[particles][particle]") {
 
     // Number of particles before reading HDF5 file
     REQUIRE(particles->nparticles() == 0);
+    // Write particles as Houdini bgeo files
+    REQUIRE(particles->write_particles("./particles.bgeo") == false);
     // If particles file is found read
     if (io->check_file(filename)) particles->read_particles_hdf5(filename);
 
     // Number of particles after reading HDF5 file
     REQUIRE(particles->nparticles() == 8);
+    // Write particles as Houdini bgeo files
+    REQUIRE(particles->write_particles("./particles.bgeo") == true);
   }
 }

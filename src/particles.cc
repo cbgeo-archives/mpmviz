@@ -84,7 +84,7 @@ bool mpmviz::Particles::write_particles(const std::string& filename) {
   bool status = true;
   try {
     if (particles_.empty())
-      throw std::runtime_error("No cells have been initialised!");
+      throw std::runtime_error("No particles have been initialised!");
 
     Partio::ParticlesDataMutable* parts = Partio::create();
     Partio::ParticleAttribute postition, velocity, mass, index;
