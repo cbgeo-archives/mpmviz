@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
     // If particles file is found read
     if (io->check_file(filename)) particles->read_particles_hdf5(filename);
 
-    particles->write_particles("particle09.geo");
+    particles->write_particles("particle09.bgeo");
     /*
     if (boost::filesystem::is_directory(io->working_dir())) {
       std::cout << io->working_dir() << " is a directory containing:\n";
