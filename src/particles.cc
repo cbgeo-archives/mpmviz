@@ -90,9 +90,9 @@ bool mpmviz::Particles::write_particles(const std::string& filename) {
     Partio::ParticleAttribute postition, velocity, mass, index;
 
     index = parts->addAttribute("index", Partio::INT, 1);
-    mass = parts->addAttribute("mass", Partio::VECTOR, 1);
+    mass = parts->addAttribute("m", Partio::VECTOR, 1);
     postition = parts->addAttribute("position", Partio::VECTOR, 3);
-    velocity = parts->addAttribute("velocity", Partio::VECTOR, 3);
+    velocity = parts->addAttribute("v", Partio::VECTOR, 3);
 
     for (const auto& particle : particles_) {
       // Add particle and get index
