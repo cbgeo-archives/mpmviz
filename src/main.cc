@@ -27,12 +27,12 @@ int main(int argc, char** argv) {
     // Create a particle object
     auto particles = std::make_unique<mpmviz::Particles>(id, Dim);
 
-    const std::string filename = io->working_dir() + "particles09.h5";
+    const std::string filename = io->working_dir() + io->file();
 
     // If particles file is found read
     if (io->check_file(filename)) particles->read_particles_hdf5(filename);
 
-    particles->write_particles("particle09.bgeo");
+    particles->write_particles(filename + ".bgeo");
     /*
     if (boost::filesystem::is_directory(io->working_dir())) {
       std::cout << io->working_dir() << " is a directory containing:\n";

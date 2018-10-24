@@ -6,10 +6,11 @@
 TEST_CASE("IO is checked for input parsing", "[IO]") {
 
   // Assign argc and argv to nput arguments of MPM
-  int argc = 3;
+  int argc = 5;
   // clang-format off
-    char* argv[] = {(char*)"./mpmviz",
-                    (char*)"-f",  (char*)"../hdf5-samples/"};
+  char* argv[] = {(char*)"./mpmviz",
+                  (char*)"-f",  (char*)"../hdf5-samples/",
+                  (char*)"-i",  (char*)"particles09.h5"};
   // clang-format on
 
   // Create an IO object

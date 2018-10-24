@@ -13,11 +13,19 @@ mpmviz::IO::IO(int argc, char** argv) {
         "f", "working_dir", "Current working folder", true, "", "working_dir");
     cmd.add(cwd_arg);
 
+    // Define working directory
+    TCLAP::ValueArg<std::string> file_arg("i", "file", "Current file", true, "",
+                                          "file");
+    cmd.add(file_arg);
+
     // Parse arguments
     cmd.parse(argc, argv);
 
     // Set working directory
     working_dir_ = cwd_arg.getValue();
+
+    // Set file
+    file_ = file_arg.getValue();
 
   } catch (TCLAP::ArgException& except) {  // catch any exceptions
     console_->error("error: {}  for arg {}", except.error(), except.argId());

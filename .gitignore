@@ -60,3 +60,4 @@ configure.scan
 *stamp-h1
 benchmarks/
 hdf5-samples/viz/*
+*.bgeo*

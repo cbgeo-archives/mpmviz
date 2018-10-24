@@ -24,8 +24,11 @@ class IO {
   //! \param[in] file_name Name of the file to check if it is present
   bool check_file(const std::string& file_name);
 
-  //! Return the workign directory
+  //! Return the working directory
   std::string working_dir() const { return working_dir_; }
+
+  //! Return the file
+  std::string file() const { return file_; }
 
   //! Create output file names (eg. velocity0000*.vtk)
   //! Generates a file based on attribute, current step and maxsteps
@@ -41,6 +44,8 @@ class IO {
  private:
   //! Working directory
   std::string working_dir_{"./"};
+  //! File
+  std::string file_{"particles00.h5"};
   //! Logger
   std::shared_ptr<spdlog::logger> console_;
 };

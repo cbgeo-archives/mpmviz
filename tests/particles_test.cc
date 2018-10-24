@@ -18,16 +18,17 @@ TEST_CASE("Particles are checked for input parsing", "[particles][particle]") {
 
   SECTION("Read a single HDF5 particles file") {
     // Assign argc and argv to nput arguments of MPM
-    int argc = 3;
+    int argc = 5;
     // clang-format off
     char* argv[] = {(char*)"./mpmviz",
-                    (char*)"-f",  (char*)"../hdf5-samples"};
+                    (char*)"-f",  (char*)"../hdf5-samples/",
+                    (char*)"-i",  (char*)"particles09.h5"};
     // clang-format on
 
     // Create an IO object
     auto io = std::make_unique<mpmviz::IO>(argc, argv);
     // HDF5 file
-    const std::string filename = "../hdf5-samples/particles09.h5";
+    const std::string filename = io->working_dir() + io->file();
 
     // Number of particles before reading HDF5 file
     REQUIRE(particles->nparticles() == 0);
