@@ -32,17 +32,15 @@ int main(int argc, char** argv) {
     // If particles file is found read
     if (io->check_file(filename)) particles->read_particles_hdf5(filename);
 
-    particles->write_particles(filename + ".bgeo");
-    /*
-    if (boost::filesystem::is_directory(io->working_dir())) {
-      std::cout << io->working_dir() << " is a directory containing:\n";
-      boost::system::error_code error;
-      for (auto& entry :
-           boost::filesystem::directory_iterator(io->working_dir(), error))
-        if (boost::filesystem::is_regular_file(entry) &&
-    boost::filesystem::extension(entry) == ".h5") std::cout << entry << "\n";
-    }
-    */
+    // Create a viz folder
+    const std::string viz = io->working_dir() + "viz-houdini/";
+    boost::filesystem::path dir(viz);
+    if (!boost::filesystem::exists(dir))
+      boost::filesystem::create_directory(dir);
+
+    const std::string vizfile =
+        viz + boost::filesystem::change_extension(io->file(), ".bgeo").string();
+    particles->write_particles(vizfile);
 
   } catch (std::exception& exception) {
     console->error("MPM-Viz main: {}", exception.what());
