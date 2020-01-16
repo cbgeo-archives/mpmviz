@@ -32,7 +32,9 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 */
-#define _USE_MATH_DEFINES
+#ifndef _USE_MATH_DEFINES
+    #define _USE_MATH_DEFINES
+#endif
 #include <cmath>
 
 #include "../Partio.h"
@@ -40,6 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #include "PartioEndian.h"
 #include "ZIP.h"
 
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -79,25 +82,25 @@ bool ParseSpec(const string& spec,string& typeName,string& name)
     return true;
 }
 
-ParticlesDataMutable* readPTC(const char* filename,const bool headersOnly)
+ParticlesDataMutable* readPTC(const char* filename,const bool headersOnly,std::ostream* errorStream)
 {
-    auto_ptr<istream> input(Gzip_In(filename,ios::in|ios::binary));
+    unique_ptr<istream> input(Gzip_In(filename,ios::in|ios::binary));
     if(!*input){
-        cerr<<"Partio: Unable to open file "<<filename<<endl;
+        if(errorStream) *errorStream <<"Partio: Unable to open file "<<filename<<endl;
         return 0;
     }
 
     int magic;
     read<LITEND>(*input,magic);
     if(ptc_magic!=magic){
-        cerr<<"Partio: Magic number '"<<magic<<"' of '"<<filename<<"' doesn't match pptc magic '"<<ptc_magic<<"'"<<endl;
+        if(errorStream) *errorStream <<"Partio: Magic number '"<<magic<<"' of '"<<filename<<"' doesn't match pptc magic '"<<ptc_magic<<"'"<<endl;
         return 0;
     }
 
     int version;
     read<LITEND>(*input,version);
     if(version>2){
-        cerr<<"Partio: ptc reader only supports version 2 or less"<<endl;
+        if(errorStream) *errorStream <<"Partio: ptc reader only supports version 2 or less"<<endl;
         return 0;
     }
 
@@ -162,7 +165,7 @@ ParticlesDataMutable* readPTC(const char* filename,const bool headersOnly)
             dataType=FLOAT;
             dataSize=1;
         }else{
-            cerr<<"Partio: "<<filename<<" had unknown attribute spec "<<typeName<<" "<<name<<endl;
+            if(errorStream) *errorStream <<"Partio: "<<filename<<" had unknown attribute spec "<<typeName<<" "<<name<<endl;
             simple->release();
             return 0;
         }
@@ -181,7 +184,7 @@ ParticlesDataMutable* readPTC(const char* filename,const bool headersOnly)
         parsedSize+=dataSize;
     }
     if(dataSize!=parsedSize){
-        cerr<<"Partio: error with PTC, computed dataSize ("<<dataSize
+        if(errorStream) *errorStream <<"Partio: error with PTC, computed dataSize ("<<dataSize
                  <<") different from read one ("<<parsedSize<<")"<<endl;
         simple->release();
         return 0;
@@ -209,9 +212,9 @@ ParticlesDataMutable* readPTC(const char* filename,const bool headersOnly)
 	     float nz = (float)z / 65535.0f;
 	     norm[2] = 2.0f * nz - 1.0f;
 	     float fphi = (float)phi / 65535.0f;
-	     fphi = 2.0 * M_PI * (fphi - 0.5);
+	     fphi = 2.0f * static_cast<float>(M_PI) * (fphi - 0.5f);
 	     //assert(-M_PI-0.0001 <= fphi && fphi <= M_PI+0.0001);
-	     double rxy = sqrt(1.0 - norm[2]*norm[2]);
+	     float rxy = sqrt(1.0f - norm[2]*norm[2]);
 	     norm[0] = rxy * sin(fphi);
 	     norm[1] = rxy * cos(fphi);
 	} else {
@@ -233,17 +236,17 @@ ParticlesDataMutable* readPTC(const char* filename,const bool headersOnly)
     return simple;
 }
 
-bool writePTC(const char* filename,const ParticlesData& p,const bool compressed)
+bool writePTC(const char* filename,const ParticlesData& p,const bool compressed,std::ostream* errorStream)
 {
     //ofstream output(filename,ios::out|ios::binary);
 
-    auto_ptr<ostream> output(
+    unique_ptr<ostream> output(
         compressed ? 
         Gzip_Out(filename,ios::out|ios::binary)
         :new ofstream(filename,ios::out|ios::binary));
 
     if(!*output){
-        cerr<<"Partio Unable to open file "<<filename<<endl;
+        if(errorStream) *errorStream <<"Partio Unable to open file "<<filename<<endl;
         return false;
     }
 
@@ -261,11 +264,11 @@ bool writePTC(const char* filename,const ParticlesData& p,const bool compressed)
     bool foundRadius=p.attributeInfo("radius",radiusHandle);
 
     if(!foundPosition){
-        cerr<<"Partio: failed to find attr 'position' for PTC output"<<endl;
+        if(errorStream) *errorStream <<"Partio: failed to find attr 'position' for PTC output"<<endl;
         return false;
     }
-    if(!foundNormal) cerr<<"Partio: failed to find attr 'normal' for PTC output, using 0,0,0"<<endl;
-    if(!foundRadius) cerr<<"Partio: failed to find attr 'radius' for PTC output, using 1"<<endl;
+    if(!foundNormal) if(errorStream) *errorStream <<"Partio: failed to find attr 'normal' for PTC output, using 0,0,0"<<endl;
+    if(!foundRadius) if(errorStream) *errorStream <<"Partio: failed to find attr 'radius' for PTC output, using 1"<<endl;
 
     // compute bounding box
     float boxmin[3]={FLT_MAX,FLT_MAX,FLT_MAX},boxmax[3]={-FLT_MAX,-FLT_MAX,-FLT_MAX};
@@ -285,7 +288,7 @@ bool writePTC(const char* filename,const ParticlesData& p,const bool compressed)
             else write<LITEND>(*output,(float)0);
     }
     // eye-to-screen
-    const float foo[4][4]={{1.8,0,0,0}, {0,2.41,0,0}, {0,0,1,1}, {0,0,-.1,0}};
+    const float foo[4][4]={{1.8f,0,0,0}, {0,2.41f,0,0}, {0,0,1,1}, {0,0,-.1f,0}};
     for(int i=0;i<4;i++) for(int j=0;j<4;j++){
             write<LITEND>(*output,foo[i][j]);
     }
@@ -317,11 +320,10 @@ bool writePTC(const char* filename,const ParticlesData& p,const bool compressed)
                 dataSize+=attr.count;
                 specs.push_back("matrix "+attr.name+"\n");
             }else{
-                cerr<<"Partio: Unable to write data type "<<TypeName(attr.type)<<"["<<attr.count<<"] to a ptc file"<<endl;
+                if(errorStream) *errorStream <<"Partio: Unable to write data type "<<TypeName(attr.type)<<"["<<attr.count<<"] to a ptc file"<<endl;
             }
         }
     }
-    //cerr<<"writing dataSize"<<dataSize<<endl;
     write<LITEND>(*output,nVars,dataSize);
 
     for(unsigned int i=0;i<specs.size();i++){

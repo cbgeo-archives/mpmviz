@@ -45,6 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #include <vector>
 #include <map>
 #include <stdint.h>
+#include <string.h>
 #include "PartioAttribute.h"
 #include "PartioIterator.h"
 
@@ -54,6 +55,7 @@ namespace Partio{
 typedef uint64_t ParticleIndex;
 
 class ParticlesData;
+class ParticlesDataMutable;
 // Particle Collection Interface
 //!  Particle Collection Interface
 /*!
@@ -66,24 +68,29 @@ class ParticlesInfo
 protected:
     virtual ~ParticlesInfo() {}
 public:
-    friend void freeCached(ParticlesData* particles);
 
     //! Frees the memory if this particle set was created with create() or release()
     //! Reduces reference count if it was obtained with readCached()
     //! and if the ref count hits zero, frees the memory
-    virtual void release() const=0;
+    virtual void release()=0;
 
     //! Number of particles in the structure.
-    virtual int numAttributes() const=0;
+    virtual int numParticles() const=0;
 
     //! Number of per-particle attributes.
-    virtual int numParticles() const=0;
+    virtual int numAttributes() const=0;
+    //! Number of fixed attributes.
+    virtual int numFixedAttributes() const=0;
 
     //! Lookup an attribute by name and store a handle to the attribute.
     virtual bool attributeInfo(const char* attributeName,ParticleAttribute& attribute) const=0;
+    //! Lookup an attribute by name and store a handle to the attribute.
+    virtual bool fixedAttributeInfo(const char* attributeName,FixedAttribute& attribute) const=0;
 
     //! Lookup an attribute by index and store a handle to the attribute.
-    virtual bool attributeInfo(const int attributeInfo,ParticleAttribute& attribute) const=0;
+    virtual bool attributeInfo(const int index,ParticleAttribute& attribute) const=0;
+    //! Lookup an attribute by index and store a handle to the attribute.
+    virtual bool fixedAttributeInfo(const int index,FixedAttribute& attribute) const=0;
 };
 
 // Particle Data Interface
@@ -97,6 +104,7 @@ class ParticlesData:public ParticlesInfo
 protected:
     virtual ~ParticlesData() {}
 public:
+    friend void freeCached(ParticlesData* particles);
 
     typedef ParticleIterator<true> const_iterator;
 
@@ -117,11 +125,21 @@ public:
         return static_cast<T*>(dataInternal(attribute,particleIndex));
     }
 
+    template<class T> inline const T* fixedData(const FixedAttribute& attribute) const
+    {
+        // TODO: add type checking
+        return static_cast<T*>(fixedDataInternal(attribute));
+    }
+
     /// All indexed strings for an attribute
     virtual const std::vector<std::string>& indexedStrs(const ParticleAttribute& attr) const=0;
+    /// All indexed strings for an attribute
+    virtual const std::vector<std::string>& fixedIndexedStrs(const FixedAttribute& attr) const=0;
 
     /// Looks up the index for a given string for a given attribute, returns -1 if not found
     virtual int lookupIndexedStr(const ParticleAttribute& attribute,const char* str) const=0;
+    /// Looks up the index for a given string for a given attribute, returns -1 if not found
+    virtual int lookupFixedIndexedStr(const FixedAttribute& attribute,const char* str) const=0;
 
     //! Fill the user supplied values array with data corresponding to the given
     //! list of particles. Specify whether or not your indices are sorted. Attributes
@@ -151,7 +169,7 @@ public:
         ParticleIndex *points, float *pointDistancesSquared, float *finalRadius2) const=0;
 
     //! Produce a const iterator
-    virtual const_iterator setupConstIterator() const=0;
+    virtual const_iterator setupConstIterator(const int index=0) const=0;
 
     //! Produce a beginning iterator for the particles
     const_iterator begin() const
@@ -163,6 +181,7 @@ public:
 
 private:
     virtual void* dataInternal(const ParticleAttribute& attribute,const ParticleIndex particleIndex) const=0;
+    virtual void* fixedDataInternal(const FixedAttribute& attribute) const=0;
     virtual void dataInternalMultiple(const ParticleAttribute& attribute,const int indexCount,
         const ParticleIndex* particleIndices,const bool sorted,char* values) const=0;
 };
@@ -191,8 +210,35 @@ public:
         return static_cast<T*>(dataInternal(attribute,particleIndex));
     }
 
+    //! Get a pointer to the data corresponding to the attribute given by the
+    //! fixed attribute handle.
+    template<class T> inline T* fixedDataWrite(const FixedAttribute& attribute) const
+    {
+        // TODO: add type checking
+        return static_cast<T*>(fixedDataInternal(attribute));
+    }
+
+    /// Set particle value for attribute
+    template<class T> inline void set(const ParticleAttribute& attribute,
+                                      const ParticleIndex particleIndex, const T* data) {
+        T* ptr = static_cast<T*>(dataInternal(attribute, particleIndex));
+        memcpy(ptr, data, attribute.count * TypeSize(attribute.type));
+    }
+
+    template<class T> inline void setFixed(const FixedAttribute& attribute, const T* data) {
+        T* ptr = static_cast<T*>(fixedDataInternal(attribute));
+        memcpy(ptr, data, attribute.count * TypeSize(attribute.type));
+    }
+
     /// Returns a token for the given string. This allows efficient storage of string data
     virtual int registerIndexedStr(const ParticleAttribute& attribute,const char* str)=0;
+    /// Returns a token for the given string. This allows efficient storage of string data
+    virtual int registerFixedIndexedStr(const FixedAttribute& attribute,const char* str)=0;
+
+    /// Returns a token for the given string. This allows efficient storage of string data
+    virtual void setIndexedStr(const ParticleAttribute& attribute,int indexedStringToken,const char* str)=0;
+    /// Returns a token for the given string. This allows efficient storage of string data
+    virtual void setFixedIndexedStr(const FixedAttribute& attribute,int indexedStringToken,const char* str)=0;
 
     //! Preprocess the data for finding nearest neighbors by sorting into a
     //! KD-Tree. Note: all particle pointers are invalid after this call.
@@ -200,6 +246,10 @@ public:
 
     //! Adds an attribute to the particle with the provided name, type and count
     virtual ParticleAttribute addAttribute(const char* attribute,ParticleAttributeType type,
+        const int count)=0;
+
+    //! Adds a fixed attribute with the provided name, type and count
+    virtual FixedAttribute addFixedAttribute(const char* attribute,ParticleAttributeType type,
         const int count)=0;
 
     //! Add a particle to the particle set. Returns the offset to the particle
@@ -218,10 +268,11 @@ public:
     {return iterator();}
 
     //! Produce a const iterator
-    virtual iterator setupIterator()=0;
+    virtual iterator setupIterator(const int index=0)=0;
 
 private:
     virtual void* dataInternal(const ParticleAttribute& attribute,const ParticleIndex particleIndex) const=0;
+    virtual void* fixedDataInternal(const FixedAttribute& attribute) const=0;
 };
 
 //! Provides an empty particle instance, freed with p->release()
@@ -229,27 +280,35 @@ ParticlesDataMutable* create();
 
 ParticlesDataMutable* createInterleave();
 
+//! Clone a ParticlesData instance into a new ParticlesDataMutable instance.
+//! This does *not* copy data, it only copies the attribute schema.
+ParticlesDataMutable* cloneSchema(const ParticlesData&);
+
+//! Copy a ParticlesData instance into a new ParticlesDataMutable instance.
+//! clone() copies the detail attributes and particle data by default.
+//! To copy only the detail attributes, pass particles=false.
+ParticlesDataMutable* clone(const ParticlesData&, bool particles=true);
+
 //! Provides read/write access to a particle set stored in a file
 //! freed with p->release()
-ParticlesDataMutable* read(const char* filename);
+ParticlesDataMutable* read(const char* filename,const bool verbose=true,std::ostream& errorStream=std::cerr);
 
 //! Provides read access to a particle headers (number of particles
 //! and attribute information, much cheapeer
-ParticlesInfo* readHeaders(const char* filename);
+ParticlesInfo* readHeaders(const char* filename,const bool verbose=true,std::ostream& errorStream=std::cerr);
 
 //! Provides access to a particle set stored in a file
 //! if filename ends with .gz or forceCompressed is true, the file is compressed.
-void write(const char* filename,const ParticlesData&,const bool forceCompressed=false);
-
+void write(const char* filename,const ParticlesData&,const bool forceCompressed=false,bool verbose=true,std::ostream& errorStream=std::cerr);
 
 //! Cached (only one copy) read only way to read a particle file
 /*!
   Loads a file read-only if not already in memory, otherwise returns
-  already loaded item. Pointer is owned by Partio and must be releasedwith
-  p->release(); (will not be deleted if others are also holding).
+  already loaded item. Pointer is owned by Partio and must be released
+  with p->release(); (will not be deleted if others are also holding).
   If you want to do finding neighbors give true to sort
 */
-ParticlesData* readCached(const char* filename,const bool sort);
+ParticlesData* readCached(const char* filename,const bool sort,const bool verbose=true,std::ostream& errorStream=std::cerr);
 
 //! Begin accessing data in a cached file
 /*!
@@ -270,6 +329,20 @@ void endCachedAccess(ParticlesData* particles);
 
 //! Prints a subset of particle data in a textual form
 void print(const ParticlesData* particles);
+
+ParticlesDataMutable* computeClustering(ParticlesDataMutable* particles, const int numNeighbors,const double radiusSearch,const double radiusInside,const int connections,const double density);
+
+//! Merges one particle set into another
+/*!
+  Given a ParticleSetMutable, merges it with a second ParticleSet,
+  copying particles and attributes that align with the base particle
+  set. If an identifier is provided, that will be used as a key
+  to replace the particle in the base set with the particle in the second
+  set with the same identifier attribute value. If the identifier is not
+  provided or the particle's attribute value is not found in the base set,
+  a new particle is added. If used, the identifier must be a single INT.
+*/
+void merge(ParticlesDataMutable& base, const ParticlesData& delta, const std::string& identifier=std::string());
 
 }
 #endif

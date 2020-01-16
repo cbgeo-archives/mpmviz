@@ -49,11 +49,11 @@ using namespace std;
 
 // TODO: convert this to use iterators like the rest of the readers/writers
 
-ParticlesDataMutable* readPDA(const char* filename,const bool headersOnly)
+ParticlesDataMutable* readPDA(const char* filename,const bool headersOnly,std::ostream* errorStream)
 {
-    auto_ptr<istream> input(Gzip_In(filename,ios::in|ios::binary));
+    unique_ptr<istream> input(Gzip_In(filename,ios::in|ios::binary));
     if(!*input){
-        cerr<<"Partio: Can't open particle data file: "<<filename<<endl;
+        if(errorStream) *errorStream <<"Partio: Can't open particle data file: "<<filename<<endl;
         return 0;
     }
 
@@ -87,9 +87,9 @@ ParticlesDataMutable* readPDA(const char* filename,const bool headersOnly)
 
         if(word=="V"){
             attrs.push_back(simple->addAttribute(attrNames[index].c_str(),Partio::VECTOR,3));
-        }else if("R"){
+        }else if(word=="R"){
             attrs.push_back(simple->addAttribute(attrNames[index].c_str(),Partio::FLOAT,1));
-        }else if("I"){
+        }else if(word=="I"){
             attrs.push_back(simple->addAttribute(attrNames[index].c_str(),Partio::INT,1));
         }
 
@@ -141,9 +141,9 @@ ParticlesDataMutable* readPDA(const char* filename,const bool headersOnly)
     return simple;
 }
 
-bool writePDA(const char* filename,const ParticlesData& p,const bool compressed)
+bool writePDA(const char* filename,const ParticlesData& p,const bool compressed,std::ostream* errorStream)
 {
-    auto_ptr<ostream> output(
+    unique_ptr<ostream> output(
         compressed ? 
         Gzip_Out(filename,ios::out|ios::binary)
         :new ofstream(filename,ios::out|ios::binary));

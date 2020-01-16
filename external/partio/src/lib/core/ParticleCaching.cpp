@@ -49,7 +49,7 @@ namespace
 std::map<ParticlesData*,int> cachedParticlesCount;
 std::map<std::string,ParticlesData*> cachedParticles;
 
-ParticlesData* readCached(const char* filename,const bool sort)
+ParticlesData* readCached(const char* filename,const bool sort,const bool verbose,std::ostream& error)
 {
     mutex.lock();
     std::map<std::string,ParticlesData*>::iterator i=cachedParticles.find(filename);
@@ -59,7 +59,7 @@ ParticlesData* readCached(const char* filename,const bool sort)
         p=i->second;
         cachedParticlesCount[p]++;
     }else{
-        ParticlesDataMutable* p_rw=read(filename);
+        ParticlesDataMutable* p_rw=read(filename,verbose);
         if(p_rw){
             if(sort) p_rw->sort();
             p=p_rw;
@@ -79,11 +79,11 @@ void freeCached(ParticlesData* particles)
 
     std::map<ParticlesData*,int>::iterator i=cachedParticlesCount.find(particles);
     if(i==cachedParticlesCount.end()){ // Not found in cache, just free
-        delete (ParticlesInfo*)particles;
+        delete particles;
     }else{ // found in cache
         i->second--; // decrement ref count
         if(i->second==0){ // ref count is now zero, remove from structure
-            delete (ParticlesInfo*)particles;
+            delete particles;
             cachedParticlesCount.erase(i);
             for(std::map<std::string,ParticlesData*>::iterator i2=cachedParticles.begin();
                 i2!=cachedParticles.end();++i2){
@@ -99,12 +99,12 @@ void freeCached(ParticlesData* particles)
     mutex.unlock();
 }
 
-void beginCachedAccess(ParticlesData* particles)
+void beginCachedAccess(ParticlesData*)
 {
     // TODO: for future use
 }
 
-void endCachedAccess(ParticlesData* particles)
+void endCachedAccess(ParticlesData*)
 {
     // TODO: for future use
 }

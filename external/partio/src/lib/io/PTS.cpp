@@ -54,12 +54,12 @@ using namespace std;
 
 // TODO: convert this to use iterators like the rest of the readers/writers
 
-ParticlesDataMutable* readPTS(const char* filename,const bool headersOnly)
+ParticlesDataMutable* readPTS(const char* filename,const bool headersOnly,std::ostream* errorStream)
 {
-    auto_ptr<istream> input(Gzip_In(filename,ios::in|ios::binary));
+    unique_ptr<istream> input(Gzip_In(filename,ios::in|ios::binary));
     if (!*input)
     {
-        cerr<<"Partio: Can't open particle data file: "<<filename<<endl;
+        if(errorStream) *errorStream<<"Partio: Can't open particle data file: "<<filename<<endl;
         return 0;
     }
 
@@ -89,14 +89,23 @@ ParticlesDataMutable* readPTS(const char* filename,const bool headersOnly)
 	input->getline(line,1024);
     input->getline(line,1024);
     int valcount = 0;
-    char * pch = strtok( line, "\t " );
+#ifdef PARTIO_WIN32
+	char * nextLine = NULL;
+    char * pch = strtok_s( line, "\t ", &nextLine );
+#else
+	char * pch = strtok( line, "\t " );
+#endif
     while ( pch )
     {
         if ( *pch != 0 && *pch != '\n' )
 		{
             valcount++;
         }
-        pch = strtok( NULL, "\t " );
+#ifdef PARTIO_WIN32
+        pch = strtok_s( NULL, "\t ", &nextLine );
+#else
+		pch = strtok( NULL, "\t " );
+#endif
     }
 
 
@@ -248,7 +257,7 @@ ParticlesDataMutable* readPTS(const char* filename,const bool headersOnly)
 /*
 bool writePTS(const char* filename,const ParticlesData& p,const bool compressed)
 {
-    auto_ptr<ostream> output(
+    unique_ptr<ostream> output(
         compressed ?
         Gzip_Out(filename,ios::out|ios::binary)
         :new ofstream(filename,ios::out|ios::binary));
