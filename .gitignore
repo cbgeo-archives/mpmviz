@@ -61,3 +61,4 @@ configure.scan
 benchmarks/
 hdf5-samples/viz/*
 *.bgeo*
+**/external/partio/*
