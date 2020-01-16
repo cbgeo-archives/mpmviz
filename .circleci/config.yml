@@ -13,7 +13,7 @@ jobs:
             mkdir -p build
             [ "$(ls -A build)" ] && rm -rf build/*
             cd build
-            cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++ -DCMAKE_EXPORT_COMPILE_COMMANDS=On ..
+            cmake -DPARTIO_ROOT=/home/cbgeo/partio/ -DCMAKE_EXPORT_COMPILE_COMMANDS=On ..
             make -j4
             ctest -VV
       # Clang-6.0
@@ -23,7 +23,7 @@ jobs:
             mkdir -p build
             [ "$(ls -A build)" ] && rm -rf build/*
             cd build
-            scan-build cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_EXPORT_COMPILE_COMMANDS=On ..
+            scan-build cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DPARTIO_ROOT=/home/cbgeo/partio/ -DCMAKE_EXPORT_COMPILE_COMMANDS=On ..
             scan-build make -j4 
             ctest -VV
       # cppcheck
@@ -44,7 +44,7 @@ jobs:
             mkdir -p build
             [ "$(ls -A build)" ] && rm -rf build/*
             cd build
-            cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++ -DCMAKE_EXPORT_COMPILE_COMMANDS=On -DENABLE_COVERAGE=On ..
+            cmake -DCMAKE_CXX_COMPILER=g++ -DPARTIO_ROOT=/home/cbgeo/partio/ -DCMAKE_EXPORT_COMPILE_COMMANDS=On -DENABLE_COVERAGE=On ..
             make mpmviz-test_coverage -j4
             ./mpmviz-test_coverage
             make gcov
