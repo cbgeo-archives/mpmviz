@@ -22,12 +22,13 @@
 * [Boost](http://www.boost.org/)
 * [Eigen](http://eigen.tuxfamily.org/)
 * [HDF5](https://support.hdfgroup.org/HDF5/)
+* [Partio] (https://github.com/wdas/partio)
 * [VTK](https://www.vtk.org/)
 
 ## Compile
 > See https://mpmviz-doc.cb-geo.com/ for more detailed instructions. 
 
-0. Run `mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++ /path/to/CMakeLists.txt`.
+0. Run `mkdir build && cd build && cmake -DPARTIO_ROOT=/path/to/partio/ ..`.
 
 1. Run `make clean && make -jN` (where N is the number of cores).
 
@@ -37,7 +38,7 @@
 
 ### Compile without tests [Editing CMake options]
 
-To compile without tests run: `mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -Dmpmviz_BUILD_TESTING=Off /path/to/CMakeLists.txt`.
+To compile without tests run: `mkdir build && cd build && cmake -DPARTIO_ROOT=/path/to/partio/  -Dmpmviz_BUILD_TESTING=Off /path/to/CMakeLists.txt`.
 
 ### Run tests
 
